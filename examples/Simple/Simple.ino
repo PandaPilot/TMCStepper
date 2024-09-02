@@ -9,14 +9,16 @@
 #define EN_PIN           38 // Enable
 #define DIR_PIN          55 // Direction
 #define STEP_PIN         54 // Step
-#define CS_PIN           42 // Chip select
-#define SW_MOSI          66 // Software Master Out Slave In (MOSI)
-#define SW_MISO          44 // Software Master In Slave Out (MISO)
-#define SW_SCK           64 // Software Slave Clock (SCK)
-#define SW_RX            63 // TMC2208/TMC2224 SoftwareSerial receive pin
-#define SW_TX            40 // TMC2208/TMC2224 SoftwareSerial transmit pin
-#define SERIAL_PORT Serial1 // TMC2208/TMC2224 HardwareSerial port
-#define DRIVER_ADDRESS 0b00 // TMC2209 Driver address according to MS1 and MS2
+
+#define SERIAL_PORT uart1 // TMC2208/TMC2224 HardwareSerial port
+#define DRIVER_ADDRESS1 0b00 // TMC2209 Driver address according to MS1 and MS2
+#define DRIVER_ADDRESS2 0b00
+#define DRIVER_ADDRESS3 0b00
+// Define UART port and pins for the Raspberry Pi Pico
+#define UART_ID          uart1
+#define TX_PIN           40
+#define RX_PIN           41
+#define BAUD_RATE        115200
 
 #define R_SENSE 0.11f // Match to your driver
                       // SilentStepStick series use 0.11
@@ -24,51 +26,64 @@
                       // Panucatt BSD2660 uses 0.1
                       // Watterott TMC5160 uses 0.075
 
-// Select your stepper driver type
-//TMC2130Stepper driver(CS_PIN, R_SENSE);                           // Hardware SPI
-//TMC2130Stepper driver(CS_PIN, R_SENSE, SW_MOSI, SW_MISO, SW_SCK); // Software SPI
-//TMC2660Stepper driver(CS_PIN, R_SENSE);                           // Hardware SPI
-//TMC2660Stepper driver(CS_PIN, R_SENSE, SW_MOSI, SW_MISO, SW_SCK);
-//TMC5160Stepper driver(CS_PIN, R_SENSE);
-//TMC5160Stepper driver(CS_PIN, R_SENSE, SW_MOSI, SW_MISO, SW_SCK);
-
-TMC2208Stepper driver(&SERIAL_PORT, R_SENSE);                     // Hardware Serial
-//TMC2208Stepper driver(SW_RX, SW_TX, R_SENSE);                     // Software serial
-//TMC2209Stepper driver(&SERIAL_PORT, R_SENSE, DRIVER_ADDRESS);
-//TMC2209Stepper driver(SW_RX, SW_TX, R_SENSE, DRIVER_ADDRESS);
+TMC2209Stepper driver1(UART_ID, R_SENSE, DRIVER_ADDRESS1);
+TMC2209Stepper driver2(UART_ID, R_SENSE, DRIVER_ADDRESS2);
+TMC2209Stepper driver3(UART_ID, R_SENSE, DRIVER_ADDRESS3);
 
 void setup() {
-  pinMode(EN_PIN, OUTPUT);
-  pinMode(STEP_PIN, OUTPUT);
-  pinMode(DIR_PIN, OUTPUT);
-  digitalWrite(EN_PIN, LOW);      // Enable driver in hardware
+    // Initialize UART
+    uart_init(UART_ID, BAUD_RATE);
+    gpio_set_function(TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(RX_PIN, GPIO_FUNC_UART);
 
-                                  // Enable one according to your setup
-//SPI.begin();                    // SPI drivers
-//SERIAL_PORT.begin(115200);      // HW UART drivers
-//driver.beginSerial(115200);     // SW UART drivers
+    // Initialize GPIO pins
+    gpio_init(EN_PIN);
+    gpio_set_dir(EN_PIN, GPIO_OUT);
+    gpio_put(EN_PIN, 0);  // Enable driver
 
-  driver.begin();                 //  SPI: Init CS pins and possible SW SPI pins
-                                  // UART: Init SW UART (if selected) with default 115200 baudrate
-  driver.toff(5);                 // Enables driver in software
-  driver.rms_current(600);        // Set motor RMS current
-  driver.microsteps(16);          // Set microsteps to 1/16th
+    gpio_init(STEP_PIN);
+    gpio_set_dir(STEP_PIN, GPIO_OUT);
 
-//driver.en_pwm_mode(true);       // Toggle stealthChop on TMC2130/2160/5130/5160
-//driver.en_spreadCycle(false);   // Toggle spreadCycle on TMC2208/2209/2224
-  driver.pwm_autoscale(true);     // Needed for stealthChop
+    gpio_init(DIR_PIN);
+    gpio_set_dir(DIR_PIN, GPIO_OUT);
+
+    // Initialize TMC2209Stepper driver
+    driver1.begin();
+    driver1.toff(5);
+    driver1.rms_current(600);
+    driver1.microsteps(16);
+    driver1.pwm_autoscale(true);
+    // Initialize TMC2209Stepper driver
+    driver2.begin();
+    driver2.toff(5);
+    driver2.rms_current(600);
+    driver2.microsteps(16);
+    driver2.pwm_autoscale(true);
+    // Initialize TMC2209Stepper driver
+    driver3.begin();
+    driver3.toff(5);
+    driver3.rms_current(600);
+    driver3.microsteps(16);
+    driver3.pwm_autoscale(true);
 }
 
 bool shaft = false;
 
 void loop() {
-  // Run 5000 steps and switch direction in software
-  for (uint16_t i = 5000; i>0; i--) {
-    digitalWrite(STEP_PIN, HIGH);
-    delayMicroseconds(160);
-    digitalWrite(STEP_PIN, LOW);
-    delayMicroseconds(160);
-  }
-  shaft = !shaft;
-  driver.shaft(shaft);
+    // Run 5000 steps and switch direction
+    for (uint16_t i = 5000; i > 0; i--) {
+        gpio_put(STEP_PIN, 1);
+        sleep_us(160);
+        gpio_put(STEP_PIN, 0);
+        sleep_us(160);
+    }
+    shaft = !shaft;
+    driver1.shaft(shaft);
+}
+
+int main() {
+    setup();
+    while (true) {
+        loop();
+    }
 }
