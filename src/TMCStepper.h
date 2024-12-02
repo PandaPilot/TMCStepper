@@ -1,4 +1,6 @@
 #pragma once
+#define TMCSTEPPER_H
+
 #include <cstdint>  // Add this line to include fixed-width integer types globally
 #include "pico/stdlib.h"
 #include "hardware/uart.h"

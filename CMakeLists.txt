@@ -3,8 +3,11 @@
 # Minimum CMake version required
 cmake_minimum_required(VERSION 3.13)
 
+# Specify the library name
+project(TMCStepper)
+
 # Define the TMCStepper library, including only the TMC2209-related files
-add_library(TMCStepper STATIC
+add_library(${PROJECT_NAME} STATIC
     src/source/TMC2208Stepper.cpp
     src/source/TMC2209Stepper.cpp
     src/source/TMCStepper.cpp
@@ -19,12 +22,12 @@ add_library(TMCStepper STATIC
 )
 
 # Include directories for the TMCStepper library
-target_include_directories(TMCStepper PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src  # Include the directory where TMCStepper.h is located
 )
 
 # Link any required libraries for TMCStepper, if necessary
-target_link_libraries(TMCStepper PUBLIC
+target_link_libraries(${PROJECT_NAME} PUBLIC
     pico_stdlib      # Standard Pico SDK libraries
     hardware_uart    # UART communication
     hardware_gpio    # GPIO control

@@ -1,6 +1,6 @@
 #include "TMCStepper.h"
 #include "TMC_MACROS.h"
-
+#include <cstdint>
 /*
   Requested current = mA = I_rms/1000
   Equation for current:

@@ -2,6 +2,7 @@
 
 #include "pico/stdlib.h"
 #include "TMC_platforms.h"
+#include <cstdint>
 
 class SSwitch {
   public:

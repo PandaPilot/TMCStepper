@@ -1,6 +1,7 @@
 #include "TMCStepper.h"
 #include "TMC_MACROS.h"
 #include "SERIAL_SWITCH.h"
+#include <cstdint>
 
 // Protected
 // addr needed for TMC2209

@@ -1,4 +1,5 @@
 #include "TMCStepper.h"
+#include <cstdint>
 
 uint32_t TMC2209Stepper::IOIN() {
 	return read(TMC2209_n::IOIN_t::address);
